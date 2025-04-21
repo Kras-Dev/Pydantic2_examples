@@ -1,74 +1,71 @@
 #tests/test_models.py
-import datetime
-from typing import Dict, Any
 
+from typing import Dict, Any
 import pytest
-import logging
 from models import User, AdminUser
 from pydantic import ValidationError
 
-
-logger = logging.getLogger(__name__)
-logger.info(f"Логирование настроено! Время: {datetime.datetime.now().time()}")
-
+def validate_user_data(user_data: Dict[str, Any], expected_result: bool, user_class):
+    """Функция для проверки валидации данных пользователя.
+    Args:
+        user_data (Dict[str, Any]): Данные пользователя для валидации.
+        expected_result (bool): True, если ожидается успешное создание объекта,
+                                False — если ожидается ошибка валидации.
+        user_class: Класс модели пользователя (User или AdminUser).
+    Returns:
+        user_class instance при успешной валидации.
+    Raises:
+        pytest.raises(ValidationError) если данные невалидны."""
+    if expected_result:
+        return user_class(**user_data)
+    else:
+        with pytest.raises(ValidationError):
+            user_class(**user_data)
 
 class TestModels:
-
     def test_invalid_user(self, user_data, invalid_user_data):
-        test_data =  user_data.copy()
-        for key, value in invalid_user_data.items():
-            test_data[key] = value
-
-        with pytest.raises(ValidationError):
-            User(**test_data)
+        """Проверяет, что при передаче некорректных данных пользователя возникает ValidationError."""
+        test_data = {**user_data, **invalid_user_data}
+        validate_user_data(test_data, False, User)
 
     def test_name_capitalization(self, capitalization_data, user_data):
+        """Проверяет, что имена пользователя автоматически капитализируются в соответствии с ожидаемым результатом."""
         first_name, second_name, expected_first_name, expected_second_name = capitalization_data
-        user_data["name"] = first_name
-        user_data["second_name"] = second_name
+        test_data = {**user_data, "first_name": first_name, "second_name": second_name}
 
-        user = User(**user_data)
+        user = validate_user_data(test_data, True, User)
         assert user.first_name == expected_first_name
         assert user.second_name == expected_second_name
 
     def test_age_validation(self, age_data, user_data):
+        """Проверяет корректность валидации возраста пользователя. Допускает возраст от 18 до 120 включительно."""
         age_value, expected_result = age_data
-        user_data["age"] = age_value  # Устанавливаем возраст в данные
-        logger.info(f" Устанавливаем возраст {age_value} для пользователя с данными: {user_data}")
+        test_data = {**user_data, "age": age_value}
 
         if expected_result:
-            user = User(**user_data)  # Создаем пользователя с корректными данными
-            logger.info(f"Создан пользователь с возрастом: {user.age}")
-            assert user.age == age_value, f"Ожидалось {age_value}, но получено {user.age}"
+            user = validate_user_data(test_data, True, User)
+            assert user.age == age_value
         else:
-            with pytest.raises(ValidationError) as excinfo:
-                User(**user_data) # здесь проверяем исключение при создании пользователя
-            logger.info(f"Ожидалось исключение при создании пользователя с возрастом {age_value}: {excinfo.value}")
+            validate_user_data(test_data, False, User)
 
     def test_password_validation(self, password_data, user_data):
+        """Проверяет требования к паролю пользователя"""
         password_value, expected_result = password_data
-        user_data["password"] = password_value
-        logger.info(f" Устанавливаем пароль для пользователя с данными: {user_data}")
+        test_data = {**user_data, "password": password_value}
 
         if expected_result:
-            user = User(**user_data)
-            logger.info(f"Создан пользователь с паролем: {user.password}")
-            assert user.password == password_value, f"Ожидалось {password_value}, но получено {user.password}"
+            user = validate_user_data(test_data, True, User)
+            assert user.password == password_value
         else:
-            with pytest.raises(ValidationError) as excinfo:
-                User(**user_data)  # здесь проверяем исключение при создании пользователя
-            logger.info(f"Ожидалось исключение при создании пользователя с паролем {password_value}: {excinfo.value}")
+            validate_user_data(test_data, False, User)
 
     def test_role_validation(self, role_data, user_data):
+        """Проверяет корректность валидации ролей для администратора."""
         role_value, expected_result = role_data
-        user_data['role'] = role_value  # Устанавливаем роль в данные
-        logger.info(f" Устанавливаем роль для пользователя с данными: {user_data}")
+        test_data = {**user_data, "role": role_value}
 
         if expected_result:
-            user = AdminUser(**user_data)  # Создаем администратора с корректными данными
-            logger.info(f"Создан администратор с ролью: {user.role}")
-            assert user.role.value == role_value, f"Ожидалось {role_value}, но получено {user.role.value}"
+            user = validate_user_data(test_data, True, AdminUser)
+            assert user.role.value == role_value
         else:
-            with pytest.raises(ValidationError) as excinfo:
-                AdminUser(**user_data)  # здесь проверяем исключение при создании администратора
-            logger.info(f"Ожидалось исключение при создании администратора с ролью {role_value}: {excinfo.value}")
+            validate_user_data(test_data, False, AdminUser)

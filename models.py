@@ -9,13 +9,13 @@ class Role(str, Enum):
 
 class BaseUser(BaseModel):
     email: EmailStr
-    first_name: str = Field(..., min_length=1, alias="name")
+    first_name: str = Field(..., min_length=1)
     second_name: str = Field(..., min_length=1)
 
     @field_validator("first_name", "second_name", mode="before")
     @classmethod
     def capitalize_name(cls, name: str) -> str:
-        return name.capitalize()
+        return name.strip().capitalize()
 
 class User(BaseUser):
     age: int = Field(..., ge=18, le=120)
