@@ -16,6 +16,7 @@ def main():
     us_v3 = AdminUser(**us_v3_data, role="superadmin")
 
     print(us_v3.has_permission("manage_users"))
+    print(f"schema: {us_v3.model_json_schema()}")
 
     # Пример данных для проверки
     test_data = [
