@@ -3,8 +3,9 @@ from pydantic import ValidationError
 from models import BaseUser, User, AdminUser
 
 def main():
+    uss = BaseUser(isAlco=True, email="asd@dfa.com", first_name="bo12b", second_name="siEson")
     us = BaseUser(email="asd@dfa.com", first_name="bo12b", second_name="siEson")
-    print(us)
+    print(uss)
     us_v1 = User(email="asjdk@asdu.vv", first_name="SDam11", second_name="ASDk", age=99, password="*as12JJJ!asd")
     print(us_v1)
     us_v2 = AdminUser(email="Asdas@lo.cv", first_name="vvVir", second_name="OOOO", age=44, password="!0auld*asdA", role="admin")
@@ -22,7 +23,7 @@ def main():
     test_data = [
         {"email": "invalid_email", "first_name": "John", "second_name": "Doe", "age": 22, "password":"psq12!JJasd&"},
         {"email": "john@example.com", "first_name": "", "second_name": "Doe", "age": 22, "password":"psq12!JJasd&"},
-        {"email": "john@example.com", "first_name": "John", "second_name": "", "age": 22, "password":"psq12!JJasd&"},
+        {"email": "john@example.com", "first_name": "John", "second_name": "", "age": 122, "password":"psq12!JJasd&"},
     ]
 
     for data in test_data:
