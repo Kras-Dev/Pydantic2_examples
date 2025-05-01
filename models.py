@@ -1,7 +1,8 @@
 #models.py
 from enum import Enum
 
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, ConfigDict
+
 
 class Role(str, Enum):
     ADMIN = "admin"
@@ -12,6 +13,11 @@ class BaseUser(BaseModel):
     first_name: str = Field(..., min_length=1)
     second_name: str = Field(..., min_length=1)
 
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+
+
     @field_validator("first_name", "second_name", mode="before")
     @classmethod
     def capitalize_name(cls, name: str) -> str:
@@ -20,6 +26,7 @@ class BaseUser(BaseModel):
 class User(BaseUser):
     age: int = Field(..., ge=18, le=120)
     password: str = Field(min_length=8, pattern=r".*[0-9].*[!@#$%^&*].*")
+
 
 class AdminUser(User):
     role: Role
